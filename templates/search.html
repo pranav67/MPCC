@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Search Bar</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='search.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-image: url("{{ url_for('static', filename='Search.jpg') }}");
+
+        }
+    </style>
+</head>
+
+
+<body>
+
+    {% if results %}
+    <h2>Search Results:</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">SNo</th>
+                <th scope="col">Date</th>
+                <th scope="col">Project</th>
+                <th scope="col">SubContracter</th>
+                <th scope="col">Vendor Name</th>
+                <th scope="col">Bill No.</th>
+                <th scope="col">Item Discription</th>
+                <th scope="col">SubItem</th>
+                <th scope="col">Bill Amount</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Previous Qty</th>
+                <th scope="col">Total Qty</th>
+                <th scope="col">Location</th>
+                <th scope="col">SubLocation</th>
+                <th scope="col">BOQItemNumber</th>
+                <th scope="col">BillCode</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bill in results %}
+            <tr>
+                <td>{{ bill.SNo }}</td>
+                <td>{{ bill.Date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ bill.Project }}</td>
+                <td>{{ bill.SubContracter }}</td>
+                <td>{{ bill.VendorName }}</td>
+                <td>{{ bill.BillNo }}</td>
+                <td>{{ bill.ItemDiscription }}</td>
+                <td>{{ bill.SubItem }}</td>
+                <td>{{ bill.BillAmount }}</td>
+                <td>{{ bill.Quantity }}</td>
+                <td>{{ bill.PreviousQty }}</td>
+                <td>{{ (bill.PreviousQty|int) + (bill.Quantity|int) }}</td>
+                <td>{{ bill.Location }}</td>
+                <td>{{ bill.SubLocation }}</td>
+                <td>{{ bill.BOQItemNumber }}</td>
+                <td>{{ bill.BillCode }}</td>
+                <td>
+                    <a href="{{ url_for('download_pdf', filename=bill.PDFFilePath) }}">Download PDF</a>
+                    <a href="{{ url_for('download_excel', filename=bill.ExcelFilePath) }}">Download Excel</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% else %}
+        <p>No results found.</p>
+        {% endif %}
+</body>
+
+</html>

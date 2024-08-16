@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPCC Bills Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='index.css') }}">
+    <style>
+        body {
+            background-image: url("/static/FormBackground.jpg");
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-4">
+        <h2>MPCC Bills</h2>
+        <form method="POST" action="/add_search" onsubmit="return validateForm()" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" class="form-control" id="date" name="date">
+            </div>
+            <div class="mb-3">
+                <label for="Project" class="form-label">Project</label>
+                <input type="text" class="form-control" id="Project" name="Project">
+            </div>
+            <div class="mb-3">
+                <label for="SubContracter" class="form-label">SubContracter</label>
+                <input type="text" class="form-control" id="SubContracter" name="SubContracter">
+            </div>
+            <div class="mb-3">
+                <label for="vendorName" class="form-label">Vendor Name</label>
+                <input type="text" class="form-control" id="vendorName" name="vendorName">
+            </div>
+            <div class="mb-3">
+                <label for="billNo" class="form-label">Bill No.</label>
+                <input type="text" class="form-control" id="billNo" name="billNo">
+            </div>
+            <div class="mb-3">
+                <label for="ItemDiscription" class="form-label">Item Discription</label>
+                <input type="text" class="form-control" id="ItemDiscription" name="ItemDiscription">
+            </div>
+            <div class="mb-3">
+                <label for="SubItem" class="form-label">SubItem</label>
+                <input type="text" class="form-control" id="SubItem" name="SubItem">
+            </div>
+            <div class="mb-3">
+                <label for="billAmount" class="form-label">Bill Amount</label>
+                <input type="text" class="form-control" id="billAmount" name="billAmount">
+            </div>
+            <div class="mb-3">
+                <label for="Quantity" class="form-label">Quantity</label>
+                <input type="text" class="form-control" id="Quantity" name="Quantity">
+            </div>
+            <div class="mb-3">
+                <label for="Location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="Location" name="Location">
+            </div>
+            <div class="mb-3">
+                <label for="SubLocation" class="form-label">SubLocation</label>
+                <input type="text" class="form-control" id="SubLocation" name="SubLocation">
+            </div>
+            <div class="mb-3">
+                <label for="BOQItemNumber" class="form-label">BOQItemNumber</label>
+                <input type="text" class="form-control" id="BOQItemNumber" name="BOQItemNumber">
+            </div>
+            <div class="mb-3">
+                <label for="pdf_file" class="form-label">PDF File</label>
+                <input type="file" class="form-control" id="pdf_file" name="pdf_file">
+            </div>
+            <div class="mb-3">
+                <label for="excel_file" class="form-label">Excel File</label>
+                <input type="file" class="form-control" id="excel_file" name="excel_file">
+            </div>
+            <div class="mb-3">
+                <label for="billCode" class="form-label">Bill Code</label>
+                <input type="text" class="form-control" id="billCode" name="billCode">
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <button type="submit" value="false" class="btn btn-outline-dark btn-sm mx-1">Submit</button>
+                    <button type="reset" class="btn btn-outline-dark btn-sm mx-1">Reset</button>
+                    <button type="submit" name="search" value="true"
+                        class="btn btn-outline-dark btn-sm mx-1">Search</button>
+                </div>
+                <a href="{{ url_for('login') }}" type="button" class="btn btn-outline-dark btn-sm mx-1">Logout</a>
+            </div>
+        </form>
+    </div>
+    <script>
+        function validateForm() {
+            var submitButton = document.activeElement;
+
+            if (submitButton.value === "false") {
+                var date = document.getElementById('date');
+                var Project = document.getElementById('Project');
+                var SubContracter = document.getElementById('SubContracter');
+                var vendorName = document.getElementById('vendorName');
+                var billNo = document.getElementById('billNo');
+                var itemDescription = document.getElementById('ItemDiscription');
+                var SubItem = document.getElementById('SubItem');
+                var billAmount = document.getElementById('billAmount');
+                var quantity = document.getElementById('Quantity');
+                var Location = document.getElementById('Location');
+                var SubLocation = document.getElementById('SubLocation');
+                var BOQItemNumber = document.getElementById('BOQItemNumber');
+                var billCode = document.getElementById('billCode');
+
+                if (
+                    date.value === "" ||
+                    Project.value === "" ||
+                    SubContracter.value === "" ||
+                    vendorName.value === "" ||
+                    billNo.value === "" ||
+                    itemDescription.value === "" ||
+                    SubItem.value === "" ||
+                    billAmount.value === "" ||
+                    quantity.value === "" ||
+                    Location.value === "" ||
+                    SubLocation.value === "" ||
+                    BOQItemNumber.value === "" ||
+                    billCode.value === ""
+                ) {
+                    alert("Please fill in all the required fields.");
+                    return false; // Prevent form submission
+                }
+            }
+
+            return true; // Allow the form to submit
+        }
+    </script>
+</body>
+
+</html> 
