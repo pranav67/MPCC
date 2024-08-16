@@ -17,7 +17,7 @@ db = SQLAlchemy(app)
 
 class Users(db.Model):
     Id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(1000), unique=True, nullable=True)
+    username = db.Column(db.String(1000), unique=True, nullable=False)
     password = db.Column(db.String(1000), unique=True, nullable=False)
 
 
