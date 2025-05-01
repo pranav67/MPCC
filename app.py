@@ -5,7 +5,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import update, func
 import os
 import uuid
-
+from functools import wraps
+from flask_migrate import Migrate
 
 
 app = Flask(__name__)
@@ -13,13 +14,14 @@ app.secret_key = "your_secret_key"
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///MPCC.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 class Users(db.Model):
     Id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(1000), unique=True, nullable=False)
     password = db.Column(db.String(1000), unique=True, nullable=False)
-
+    role = db.Column(db.String(50), nullable=False, default='user')
 
 class Bill(db.Model):
     SNo = db.Column(db.Integer)
@@ -44,6 +46,22 @@ class Bill(db.Model):
         return f"{self.SNo} - {self.BillCode}"
 
 
+def role_required(required_role):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'username' not in session:
+                flash('Please log in first.', 'danger')
+                return redirect(url_for('login'))
+            user = Users.query.filter_by(Id=session['username']).first()
+            if user.role != required_role:
+                flash('You do not have permission to access this page.', 'danger')
+                return redirect(url_for('dashboard'))
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -59,21 +77,21 @@ def login():
 
 
 @app.route('/register', methods=['GET', 'POST'])
+@role_required('admin')  # Only admin can register new users
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        hashed_password = generate_password_hash(
-            password, method='pbkdf2:sha256')
+        role = request.form['role']  # Get the role from the form
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         try:
-            new_user = Users(username=username, password=hashed_password)
+            new_user = Users(username=username, password=hashed_password, role=role)
             db.session.add(new_user)
             db.session.commit()
-            flash('Registration successful. Please login.', 'success')
-            return redirect(url_for('login'))
+            flash('Registration successful.', 'success')
+            return redirect(url_for('admin_dashboard'))
         except:
-            flash(
-                'Username already exists. Please choose a different username.', 'danger')
+            flash('Username already exists.', 'danger')
     return render_template('register.html')
 
 
@@ -86,8 +104,15 @@ def dashboard():
     return render_template('index.html', bills=bills)
 
 
+@app.route('/admin')
+@role_required('admin')  # Only admin can access this route
+def admin_dashboard():
+    users = Users.query.all()
+    return render_template('admin_dashboard.html', users=users)
+
 
 @app.route('/add_search', methods=['GET', 'POST'])
+@role_required('manager')  # Only managers can add or search records
 def add_search():
     if str(request.form.get('search')) == 'true':
         base_query = Bill.query
@@ -244,6 +269,7 @@ def download_excel(filename):
     return send_file(os.path.join("uploads", filename), as_attachment=True)
 
 @app.route('/delete/<bill_code>', methods=['POST'])
+@role_required('admin')  # Only admin can delete records
 def delete_record(bill_code):
     if 'username' not in session:
         flash('Please log in first.', 'danger')
@@ -281,4 +307,13 @@ def logout():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(debug=True, port=8000)
+        # Seed an admin user if it doesn't exist
+        if not Users.query.filter_by(username='admin').first():
+            admin_user = Users(
+                username='admin',
+                password=generate_password_hash('admin123', method='pbkdf2:sha256'),
+                role='admin'
+            )
+            db.session.add(admin_user)
+            db.session.commit()
+    app.run(debug=True, port=5000)
