@@ -150,7 +150,9 @@ def add_search():
                 'Location': user.Location,
                 'SubLocation': user.SubLocation,
                 'BOQItemNumber': user.BOQItemNumber,
-                'BillCode': user.BillCode
+                'BillCode': user.BillCode,
+                'PDFFilePath': user.PDFFilePath,
+                'ExcelFilePath': user.ExcelFilePath
             })
         return render_template('search.html', results=search_results)
 
@@ -183,12 +185,14 @@ def add_search():
         # Save the uploaded files to a designated folder (create the folder if it doesn't exist)
         upload_folder = "uploads"
         os.makedirs(upload_folder, exist_ok=True)
-
-        pdf_filename = str(uuid.uuid4()) + "_pdf.pdf"
-        excel_filename = str(uuid.uuid4()) + "_excel.xlsx"
-
-        pdf_file.save(os.path.join(upload_folder, pdf_filename))
-        excel_file.save(os.path.join(upload_folder, excel_filename))
+        pdf_filename = None
+        excel_filename = None
+        if pdf_file:
+            pdf_filename = str(uuid.uuid4()) + "_pdf.pdf"
+            pdf_file.save(os.path.join(upload_folder, pdf_filename))
+        if excel_file:
+            excel_filename = str(uuid.uuid4()) + "_excel.xlsx"
+            excel_file.save(os.path.join(upload_folder, excel_filename))
         billCode = request.form.get('billCode')        
         new_bill = Bill(
             SNo=SNo,
@@ -204,8 +208,8 @@ def add_search():
             Location=Location,
             SubLocation=SubLocation,
             BOQItemNumber=BOQItemNumber,
-            PDFFilePath=os.path.join(upload_folder, pdf_filename),
-            ExcelFilePath=os.path.join(upload_folder, excel_filename),
+            PDFFilePath=pdf_filename,
+            ExcelFilePath=excel_filename,
             BillCode=billCode
         )
         results = Bill.query.filter(
@@ -239,6 +243,33 @@ def download_pdf(filename):
 def download_excel(filename):
     return send_file(os.path.join("uploads", filename), as_attachment=True)
 
+@app.route('/delete/<bill_code>', methods=['POST'])
+def delete_record(bill_code):
+    if 'username' not in session:
+        flash('Please log in first.', 'danger')
+        return redirect(url_for('login'))
+    
+    record = Bill.query.filter_by(BillCode=bill_code).first()
+    if record:
+        # Delete associated files
+        if record.PDFFilePath:
+            pdf_path = os.path.join("uploads", record.PDFFilePath)
+            if os.path.exists(pdf_path):
+                os.remove(pdf_path)
+        
+        if record.ExcelFilePath:
+            excel_path = os.path.join("uploads", record.ExcelFilePath)
+            if os.path.exists(excel_path):
+                os.remove(excel_path)
+        
+        # Delete the record from the database
+        db.session.delete(record)
+        db.session.commit()
+        flash('Record and associated files deleted successfully!', 'success')
+    else:
+        flash('Record not found.', 'danger')
+    
+    return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():

@@ -1,4 +1,4 @@
-#!/Users/pranav/Desktop/MPCC/.venv/bin/python
+#!/Users/pranav/Documents/Developer/MPCC/MPCC/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
